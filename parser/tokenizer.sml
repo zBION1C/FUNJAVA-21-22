@@ -31,10 +31,9 @@ fun tokenize nil = nil
 	| tokenize ("->" :: r) = TokenLambda :: tokenize r
 	| tokenize (".m" :: r) = TokenApply :: tokenize r
 	| tokenize ("+" :: r) = TokenPlus :: tokenize r
-	| tokenize ("=" :: r) = TokenAssign :: tokenize r
 	| tokenize ("class" :: p :: "public" :: "static" :: "void" :: "main" :: "String[]" :: "args" :: r) = tokenize r
 	| tokenize ("System" :: ".out" :: ".println" :: r) = tokenize r
-	| tokenize ("}" :: r) = TokenEnd :: tokenize r
+	| tokenize (";" :: r) = TokenEnd :: tokenize r
 	| tokenize (s :: r) = foo s :: tokenize r
 
 fun delimitator c = c = #" " 
@@ -42,11 +41,12 @@ fun delimitator c = c = #" "
 		orelse 	c = #"{" 
 		orelse 	c = #"(" 
 		orelse  c = #")"
-		orelse 	c = #";";
+		orelse  c = #"="
+		orelse 	c = #"}";
 
 fun replace c = 
 	if c = #"." then " ." 
 	else if c = #"+" then " + "
 	else if c = #"-" then " -"
-	else if c = #"}" then " } "
+	else if c = #";" then " ; "
 	else str c;

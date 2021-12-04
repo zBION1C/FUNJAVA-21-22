@@ -1,5 +1,5 @@
-use "tokenizer.sml";
 Control.Print.printLength := 500;
+Control.Print.printDepth := 500;
 
 fun parse_method ts name x y z= 
 	case ts of
