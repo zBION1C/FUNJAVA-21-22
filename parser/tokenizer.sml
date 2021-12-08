@@ -7,7 +7,7 @@ datatype Program = Prog of Declaration list * Type * Variable * Expression * Exp
 
 datatype token = 
 	TokenInterface of char | TokenIntType | TokenBoolType | TokenVar of char | TokenInterfaceType of char | TokenIntMethod | TokenBoolMethod
-	| TokenCons of string | TokenBoolCons of string | TokenPlus | TokenLambda | TokenApply | TokenAssign | TokenEnd
+	| TokenCons of string | TokenBoolCons of string | TokenPlus | TokenLambda | TokenApply | TokenComma | TokenEnd | LPAREN | RPAREN
 
 exception InvalidToken of string
 fun foo s =
@@ -28,19 +28,20 @@ fun tokenize nil = nil
 	| tokenize ("boolean" :: v :: r) = TokenBoolType :: TokenVar(List.hd(String.explode v)) :: tokenize r
 	| tokenize ("false" :: r) = TokenBoolCons "false" :: tokenize r
 	| tokenize ("true" :: r) = TokenBoolCons "true" :: tokenize r
-	| tokenize ("->" :: r) = TokenLambda :: tokenize r
+	| tokenize (")" :: "->" :: r) = TokenLambda :: tokenize r
 	| tokenize (".m" :: r) = TokenApply :: tokenize r
 	| tokenize ("+" :: r) = TokenPlus :: tokenize r
-	| tokenize ("class" :: p :: "public" :: "static" :: "void" :: "main" :: "String[]" :: "args" :: r) = tokenize r
-	| tokenize ("System" :: ".out" :: ".println" :: r) = tokenize r
+	| tokenize ("," :: r) = TokenComma :: tokenize r
+	| tokenize ("class" :: p :: "public" :: "static" :: "void" :: "main" :: "(" :: "String[]" :: "args" :: ")" :: r) = tokenize r
+	| tokenize ("System" :: ".out" :: ".println" :: "(" :: r) = tokenize r
 	| tokenize (";" :: r) = TokenEnd :: tokenize r
+	| tokenize (")" :: ";" :: r) = RPAREN :: tokenize r
+	| tokenize ("(" :: r) = LPAREN :: tokenize r
+	| tokenize (")" :: r) = RPAREN :: tokenize r
 	| tokenize (s :: r) = foo s :: tokenize r
 
 fun delimitator c = c = #" " 
-		orelse 	c = #"," 
 		orelse 	c = #"{" 
-		orelse 	c = #"(" 
-		orelse  c = #")"
 		orelse  c = #"="
 		orelse 	c = #"}";
 
@@ -49,4 +50,7 @@ fun replace c =
 	else if c = #"+" then " + "
 	else if c = #"-" then " -"
 	else if c = #";" then " ; "
+	else if c = #"," then " , "
+	else if c = #"(" then " ( "
+	else if c = #")" then " ) "
 	else str c;
