@@ -43,7 +43,9 @@ fun tokenize nil = nil
 fun delimitator c = c = #" " 
 		orelse 	c = #"{" 
 		orelse  c = #"="
-		orelse 	c = #"}";
+		orelse 	c = #"}"
+		orelse  c = #"\t"
+		orelse  c = #"\n";
 
 fun replace c = 
 	if c = #"." then " ." 
