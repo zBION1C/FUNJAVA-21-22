@@ -1,12 +1,11 @@
-use "tokenizer.sml";
-use "interface_parser.sml";
-use "expression_parser.sml";
+use "parser/tokenizer.sml";
+use "parser/interface_parser.sml";
+use "parser/expression_parser.sml";
 
 Control.Print.printLength := 500;
 Control.Print.printDepth := 500;
 
 exception SyntaxError of string
-
 fun parse_interfaces ts my_list = 
 	case ts of
 		(TokenInterface c :: ts') => 
@@ -23,7 +22,7 @@ fun parse_main_declaration ts =
 		(TokenIntType :: TokenVar v :: ts') => (Int, Var v, ts')
 		| (TokenBoolType :: TokenVar v :: ts') => (Boolean, Var v, ts')
 		| (TokenInterfaceType c :: TokenVar v :: ts') => (ClassInterfaceType(N c), Var v, ts')
-		| _ => raise SyntaxError "Bad Input"
+		| _ => raise SyntaxError "Syntax Error, check the program for errors."
 
 fun parse ts =
 	let
@@ -36,21 +35,5 @@ fun parse ts =
 	in 
 		case ts'''' of
 			nil => Prog(my_list, main_type, main_var, exp1, exp2)
-			| _ => raise SyntaxError "Bad Input."
+			| _ => raise SyntaxError "Syntax Error, check the program for errors."
 	end
-
-fun readlist (infile : string) =  
-  let
-      val ins = TextIO.openIn infile 
-      fun loop indata = 
-          case TextIO.inputLine indata of 
-              SOME line => line ^ loop indata 
-            | NONE      => ""
-      val result = loop ins
-  in 
-     TextIO.closeIn ins;
-     result
-  end 
-
-val P = readlist "programma.txt";
-val p = parse(tokenize (String.tokens delimitator (String.translate replace P)));

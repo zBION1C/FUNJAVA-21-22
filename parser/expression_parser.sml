@@ -1,12 +1,17 @@
-Control.Print.printLength := 500;
-Control.Print.printDepth := 500;
-
+exception SyntaxError of string
 fun parse_base ts = 
 	case ts of
-		(TokenCons s :: ts') => (Cons(valOf (Int.fromString s)), ts')
+		 (TokenCons s :: ts') => (Cons(valOf (Int.fromString s)), ts')
+		|(TokenBoolCons s :: ts') =>
+			if (s = "false") then
+				(Cons(0), ts')
+			else
+				(Cons(1), ts')
 		|(TokenVar v :: TokenComma :: ts') => (VarExp(Var v), ts')
 		|(TokenVar v :: ts') => (VarExp(Var v), ts')
-		| _ => (VarExp(Var #"A"), ts)
+		|(LPAREN :: ts') => (VarExp(Var #"a"), ts')
+		|(RPAREN :: ts') => (VarExp(Var #"a"), ts')
+		| s => raise SyntaxError "Syntax Error, check the program for errors."
 
 fun addVar ts =
 	case ts of 
@@ -31,7 +36,6 @@ fun parse_apply_expressions ts =
 			| (RPAREN :: ts'') => (exps, ts'')
 			| _ => (exps, ts')
 	end
-
 
 and parse_expression ts var =
 	let
@@ -68,17 +72,5 @@ and parse_expression ts var =
 			|(TokenComma :: ts'') => (e, ts')
 			|(TokenVar v :: ts'') => parse_expression ts' local_var
 			|(TokenEnd :: ts'') => (e, ts'')
+			| s => raise SyntaxError "Syntax Error, check the program for errors."
 	end
-
-
-(*
-val E1 = "(o, k, l) -> x.m(2+2, y -> 4);";
-val E2 = "(o, k, l) -> (x, y) -> 2 + 2;";
-val e1 = (tokenize (String.tokens delimitator (String.translate replace E1)));
-val e2 = (tokenize (String.tokens delimitator (String.translate replace E2)));
-val final1 = parse_expression e1 [];
-val final2 = parse_expression e2 [];
-val E1 = "(x, y, z) -> x.m(y.m(1+2), (u) -> u+1);";
-val e1 = (tokenize (String.tokens delimitator (String.translate replace E1)));
-val final1 = parse_expression e1 [];
-*)

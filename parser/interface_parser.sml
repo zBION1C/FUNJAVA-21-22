@@ -1,6 +1,3 @@
-Control.Print.printLength := 500;
-Control.Print.printDepth := 500;
-
 fun parse_method ts name x y z= 
 	case ts of
 		  (TokenIntMethod :: ts') => let val x = Int in parse_method ts' name x y z end
@@ -12,7 +9,6 @@ fun parse_method ts name x y z=
 		| (TokenComma :: ts') => parse_method ts' name x y z
 		| (LPAREN :: ts') => parse_method ts' name x y z
 		| (RPAREN :: ts') => (name, x,List.rev y,List.rev z, ts')
-
 
 fun parse_interface ts= 
 	let 
