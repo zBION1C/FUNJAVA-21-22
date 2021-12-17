@@ -6,7 +6,7 @@ interface J {
 } 
 class P {
 	public static void main(String[] args) {
-		int v = (y) -> 2;
-		System.out.println(2);
+		I x = (y) -> y+1;
+		System.out.println(x.m(3));
 	}
 }

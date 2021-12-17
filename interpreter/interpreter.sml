@@ -1,3 +1,7 @@
+datatype Values = Integer of int
+				| Boolean of int
+				| Closure of char list * Expression
+
 exception UnboundVariable of char
 fun find (var, l : (char * 'a) list) =
   	case l of 
@@ -7,41 +11,62 @@ fun find (var, l : (char * 'a) list) =
      		then (#2 t)
             else find(var, l')
 
-fun eval_exp(Cons(k), env_var, env_fun) = SOME(k)
-	| eval_exp(BoolCons(k), env_var, env_fun) = SOME(k)
-	| eval_exp(VarExp(Var(v)), env_var, env_fun) = SOME(find(v, env_var))
-	| eval_exp(Plus(e1,e2), env_var, env_fun) = 
+fun getval v = 
+	case v of 
+		 (Integer k) => k
+		|(Boolean b) => b
+
+fun getvalclos c = 
+	case c of
+		(Closure c) => c
+
+fun eval_exp(env, Cons(k)) = Integer k
+	| eval_exp(env, BoolCons(k)) = Boolean k
+	| eval_exp(env, VarExp(Var(v))) = find(v, env)
+	| eval_exp(env, Plus(e1,e2)) = 
 		let
-			val sum = valOf(eval_exp(e1, env_var, env_fun)) + valOf(eval_exp(e2, env_var, env_fun))
+			val op1 = getval(eval_exp(env, e1))
+			val op2 = getval(eval_exp(env, e2))
 		in
-			SOME(sum)
+			Integer(op1 + op2)
 		end
-	| eval_exp(Lambda(vl, e), env_var, env_fun) = NONE
-
-
-fun eval_lambda(Lambda(vl, e)) = (vl, e)
+	| eval_exp(env, Apply(Var(v), args)) = 
+		let
+			val c = getvalclos(find(v, env))
+			val vl = #1 c
+			val body = #2 c
+			fun f e = eval_exp(env, e)
+			val interpreted_args = List.map f args
+			fun loop (l : char list ,el) =
+				case l of
+					  [] => []
+					| (x :: l') =>
+						let
+							val e1 = List.hd el
+							val el = List.drop (el,1)
+						in 
+							(x, e1) :: loop(l',el)
+						end
+			val env = loop(vl, interpreted_args) @ env
+		in
+			eval_exp(env, body)
+		end
+	| eval_exp(env, Lambda(vl, e)) = 
+		let 
+			fun g l = 
+				case l of
+					(Var v) => v
+			val params = List.map g vl
+		in
+			Closure((params, e))
+		end
 
 fun eval(Prog(dl, t, Var(v), e1, e2)) = 
 	let
-		val env_var = []
-		val env_fun = []
-		val v1 = eval_exp(e1,env_var, env_fun)
+		val env = []
+		val v1 = eval_exp(env, e1)
+		val env = (v, v1) :: env
+		val v2 = eval_exp(env, e2)
 	in
-		case v1 of
-			SOME k => 
-				let 
-					val v1 = valOf(v1)
-					val env_var = (v, v1) :: env_var
-					val v2 = valOf(eval_exp(e2, env_var, env_fun))
-				in
-					v2
-				end
-			| NONE =>
-				let 
-					val v1 = eval_lambda(e1)
-					val env_fun = (v, v1) :: env_fun
-					val v2 = valOf(eval_exp(e2, env_var, env_fun))
-				in
-					v2
-				end
+		getval(v2)
 	end
