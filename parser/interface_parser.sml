@@ -8,7 +8,8 @@ fun parse_method ts name x y z=
 		| (TokenInterface c :: ts') => let val name = c in parse_method ts' name x y z end 
 		| (TokenComma :: ts') => parse_method ts' name x y z
 		| (LPAREN :: ts') => parse_method ts' name x y z
-		| (RPAREN :: ts') => (name, x,List.rev y,List.rev z, ts')
+		| (RPAREN :: ts') => parse_method ts' name x y z	
+		| (TokenEnd :: ts') => (name, x,List.rev y,List.rev z, ts')
 
 fun parse_interface ts= 
 	let 

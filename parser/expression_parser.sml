@@ -1,76 +1,86 @@
-exception SyntaxError of string
-fun parse_base ts = 
+fun parse_lambda ts = 
+	let 
+		fun parse_params(ts, arr) = 
+			case ts of
+				(LPAREN :: ts') => parse_params(ts', [])		
+			 	|(TokenComma :: ts') => parse_params(ts', [])
+			 	|(RPAREN :: ts') => ([], ts')
+			 	|(TokenVar x :: ts') => 
+			 		let
+			 			val (var, ts'') = parse_params(ts',[])
+			 			val arr = Var(x) :: var
+			 		in
+			 			(arr, ts'')
+			 		end
+		val (params, ts') = parse_params(ts, [])
+	in
+		case ts' of
+			(TokenLambda :: ts'') =>
+				let
+					val (e, ts''') = parse_expression ts''
+				in
+					(Lambda(params, e), ts''')
+				end
+	end
+
+and parse_apply ts = 
+	let 
+		fun take_var ts =
+			case ts of
+				(TokenVar x :: TokenApply :: LPAREN :: ts') => (Var(x), ts')
+		val (var, ts') = take_var ts
+
+		fun parse_args(ts,arr) = 
+			let
+				val (e, ts') = parse_expression ts
+				val arr = e :: arr
+			in
+				case ts' of
+					 (TokenComma :: ts'') => parse_args(ts'', arr)
+					|(TokenEnd :: ts'') => (arr, ts'')
+					|(RPAREN :: ts'') => (arr, ts'')
+					|[] => (arr, ts')
+			end
+		val (el, ts'') = parse_args(ts', [])
+	in 
+		(Apply(var, List.rev el), ts'')
+	end
+
+and parse_atomic ts = 
 	case ts of
-		 (TokenCons s :: ts') => (Cons(valOf (Int.fromString s)), ts')
+		(TokenCons k :: ts') => (Cons(valOf (Int.fromString k)), ts')
 		|(TokenBoolCons s :: ts') =>
 			if (s = "false") then
 				(Cons(0), ts')
 			else
 				(Cons(1), ts')
-		|(TokenVar v :: TokenComma :: ts') => (VarExp(Var v), ts')
-		|(TokenVar v :: ts') => (VarExp(Var v), ts')
-		|(LPAREN :: ts') => (VarExp(Var #"a"), ts')
-		|(RPAREN :: ts') => (VarExp(Var #"a"), ts')
-		| s => raise SyntaxError "Syntax Error, check the program for errors."
+		|(TokenVar v :: TokenApply :: ts') =>
+			let
+				val (e, ts'') = parse_apply(ts)
+			in 
+				(e, ts'')
+			end
+		|(TokenVar v :: ts') => (VarExp (Var v), ts')
+		|(LPAREN :: ts') => 
+			let
+				val (e, ts'') = parse_lambda(ts)
+			in
+				(e, ts'')
+			end
 
-fun addVar ts =
-	case ts of 
-		(TokenVar v :: ts') => [Var v]
-		| _ => []
-
-fun parse_apply_expressions ts =
+and parse_expression ts =  
 	let
-		val exps = []
-		val (e, ts') = parse_expression ts []
-		val exps = e :: exps
-	in
-		case ts' of 
-			 (TokenComma :: ts'') => 
-			 	let
-			 		val (loc_exps, ts''') = parse_apply_expressions ts''
-			 		val exps = exps @ loc_exps
-			 	in
-			 		(exps, ts''')
-			 	end
-			| (LPAREN :: ts'') => parse_apply_expressions ts''
-			| (RPAREN :: ts'') => (exps, ts'')
-			| _ => (exps, ts')
-	end
-
-and parse_expression ts var =
-	let
-		val local_var = var
-		val (e, ts') = parse_base ts
-
-		val local_var = addVar ts @ local_var
+		val (e, ts') = parse_atomic ts
 	in
 		case ts' of
 			(TokenPlus :: ts'') =>
-				let
-					val (e', ts''') = parse_expression ts'' local_var 
+			 	let
+					val (e', ts''') = parse_expression ts'' 
 				in
 					(Plus(e, e'), ts''')
 				end
-			|(TokenLambda :: ts'') =>
-				let
-					val tmp = local_var
-					val local_var = []
-					val (e', ts''') = parse_expression ts'' local_var
-				in
-					(Lambda(List.rev tmp, e'), ts''')
-				end
-			|(TokenApply :: LPAREN :: ts'') =>
-				let
-					val apply_var = List.hd local_var
-					val local_var = []
-					val (exps, ts''') = parse_apply_expressions ts''
-				in
-					(Apply(apply_var, exps), ts''')
-				end
-			|(LPAREN :: ts'') => parse_expression ts'' local_var 
-			|(RPAREN :: ts'') =>  (e, ts'')
+			|(RPAREN :: ts'') => (e, ts')
 			|(TokenComma :: ts'') => (e, ts')
-			|(TokenVar v :: ts'') => parse_expression ts' local_var
 			|(TokenEnd :: ts'') => (e, ts'')
-			| s => raise SyntaxError "Syntax Error, check the program for errors."
+			| _ => (e, ts')
 	end

@@ -8,7 +8,7 @@ interface J {
 
 class P {
 	public static void main(String[] args){
-		J w = (x,y,z) -> z.m(y.m(x)+x);
-		System.out.println(w.m(2, (x) -> x+1, (u) -> u+3));
+		J w = (x,y,z) -> x.m(y.m(z) + z);
+		System.out.println(w.m((x) -> x+1, (u) -> u+2, 4));
 	}
 }
