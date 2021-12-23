@@ -1,8 +1,9 @@
 datatype Values = Integer of int
 				| Boolean of int
-				| Closure of char list * Expression
+				| Closure of char list * Expression * (char * Values) list
 
 exception UnboundVariable of char
+exception VariableNotLambda of string
 fun find (var, l : (char * 'a) list) =
   	case l of 
   		 [] => raise UnboundVariable var
@@ -19,6 +20,7 @@ fun getval v =
 fun getvalclos c = 
 	case c of
 		(Closure c) => c
+		| _ => raise VariableNotLambda "A variable in the program is not a function"
 
 fun eval_exp(env, Cons(k)) = Integer k
 	| eval_exp(env, BoolCons(k)) = Boolean k
@@ -32,9 +34,10 @@ fun eval_exp(env, Cons(k)) = Integer k
 		end
 	| eval_exp(env, Apply(Var(v), args)) = 
 		let
-			val c = getvalclos(find(v, env))
-			val vl = #1 c
-			val body = #2 c
+			val c = getvalclos(find(v, env)) 		(*Prende il valore della chiusura dall'ambiente*)
+			val vl = #1 c 							(*lista delle parametri*)
+			val body = #2 c 						(*corpo della lambda*)
+			val clos_env = #3 c 					(*Ambiente in cui valutare il corpo*)
 			fun f e = eval_exp(env, e)
 			val interpreted_args = List.map f args
 			fun loop (l : char list ,el) =
@@ -47,7 +50,7 @@ fun eval_exp(env, Cons(k)) = Integer k
 						in 
 							(x, e1) :: loop(l',el)
 						end
-			val env = loop(vl, interpreted_args) @ env
+			val env = clos_env @ loop(vl, interpreted_args)
 		in
 			eval_exp(env, body)
 		end
@@ -58,7 +61,7 @@ fun eval_exp(env, Cons(k)) = Integer k
 					(Var v) => v
 			val params = List.map g vl
 		in
-			Closure((params, e))
+			Closure((params, e, env))
 		end
 
 fun eval(Prog(dl, t, Var(v), e1, e2)) = 
