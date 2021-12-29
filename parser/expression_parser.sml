@@ -51,9 +51,9 @@ and parse_atomic ts =
 		(TokenCons k :: ts') => (Cons(valOf (Int.fromString k)), ts')
 		|(TokenBoolCons s :: ts') =>
 			if (s = "false") then
-				(Cons(0), ts')
+				(BoolCons(0), ts')
 			else
-				(Cons(1), ts')
+				(BoolCons(1), ts')
 		|(TokenVar v :: TokenApply :: ts') =>
 			let
 				val (e, ts'') = parse_apply(ts)

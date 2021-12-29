@@ -1,5 +1,5 @@
 datatype Values = Integer of int
-				| Boolean of int
+				| Boolean of bool
 				| Closure of char list * Expression * (char * Values) list
 
 exception UnboundVariable of char
@@ -15,7 +15,12 @@ fun find (var, l : (char * 'a) list) =
 fun getval v = 
 	case v of 
 		 (Integer k) => k
-		|(Boolean b) => b
+		 | (Boolean b) => raise VariableNotLambda "Sum of integer and boolean not possible"
+
+fun getbool v =
+	case v of 
+		  (1) => Boolean true
+		 |(0) => Boolean false 
 
 fun getvalclos c = 
 	case c of
@@ -23,7 +28,7 @@ fun getvalclos c =
 		| _ => raise VariableNotLambda "A variable in the program is not a function"
 
 fun eval_exp(env, Cons(k)) = Integer k
-	| eval_exp(env, BoolCons(k)) = Boolean k
+	| eval_exp(env, BoolCons(k)) = getbool(k)
 	| eval_exp(env, VarExp(Var(v))) = find(v, env)
 	| eval_exp(env, Plus(e1,e2)) = 
 		let
@@ -71,5 +76,5 @@ fun eval(Prog(dl, t, Var(v), e1, e2)) =
 		val env = (v, v1) :: env
 		val v2 = eval_exp(env, e2)
 	in
-		getval(v2)
+		v2
 	end

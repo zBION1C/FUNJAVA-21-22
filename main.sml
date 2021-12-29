@@ -1,5 +1,6 @@
 use "syntax.sml";
 use "parser/parser.sml";
+use "type-checker/type-checker.sml";
 use "interpreter/interpreter.sml";
 
 Control.Print.printLength := 500;
@@ -22,4 +23,5 @@ val file = String.translate (fn c => if c = #"\n" then "" else str c) ("esempi/"
 val P = readProgram file;
 val tknzd_prog = tokenize (String.tokens delimitator (String.translate replace P));
 val prog = parse(tknzd_prog);
+val tipo = type_check(prog)
 val valore = eval(prog);
