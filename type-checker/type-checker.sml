@@ -1,7 +1,3 @@
-datatype Types = Integer of Type
-				|Bool of Type
-				|InterfaceType of Name * Type * Type list * Variable list
-
 exception TypeMismatch of string
 exception UnboundVariable of char
 fun find (var, l : (char * 'a) list) =
@@ -12,33 +8,55 @@ fun find (var, l : (char * 'a) list) =
      		then (#2 t)
             else find(var, l')
 
-fun getval t =
+fun getvalinterface t =
 	case t of
-		 Integer Int => Int
-		|Bool Boolean => Boolean
-		| _ => raise TypeMismatch "sos"
+		ClassInterfaceType(N(n)) => n
+		| _ => raise TypeMismatch "sus"
 
-fun build_types t =
-	case t of
-		 Int => Integer Int
-		|Boolean => Bool Boolean
-		| _ => raise TypeMismatch "sos"
+fun find_dec(l, tipo) = 
+	case l of
+		 [] => raise TypeMismatch "Functional interface does not exists"
+		|Interface(N(name), ret, tlist, vlist) :: l' =>
+			if tipo = name
+			then
+				(name ,ret, tlist, vlist)
+			else find_dec(l', tipo)
 
-fun typecheck_exp(G, dl, Cons k) = Integer Int
-		|typecheck_exp(G, dl, BoolCons b) = Bool Boolean
-		|typecheck_exp(G, dl, VarExp(Var v)) = find(v, G)
-		|typecheck_exp(G, dl, Plus(e1,e2)) = Integer Int
-		|typecheck_exp(G, dl, Lambda(vl, body)) =
+fun typecheck_exp(G, Cons k, dl, t) = Int
+		|typecheck_exp(G, BoolCons b, dl, t) = Boolean
+		|typecheck_exp(G, VarExp(Var v), dl, t) = find(v, G)
+		|typecheck_exp(G, Plus(e1,e2), dl, t) = Int
+		|typecheck_exp(G, Apply(Var(v), el), dl, t) = 
 			let
-				fun find_dec(l, n, t) = 
+				fun check_args(l,lt) =
 					case l of
-						 [] => raise TypeMismatch "Functional interface does not exists"
-						|Interface(name, ret, tlist, vlist) :: l' =>
-							if n = List.length vlist andalso ret = t
-							then
-								InterfaceType(name, ret, tlist, vlist)
-							else find_dec(l', n, t)
-				fun add_to_contest(lt, vl) =
+						[] => []
+						| e :: l' => 
+							let
+								val t = List.hd lt
+								val lt' = List.drop(lt, 1)
+							in
+								typecheck_exp(G, e, dl, t) :: check_args(l', lt')
+							end
+				val var_type = find(v, G)
+			in 
+				case var_type of
+					ClassInterfaceType(N(name)) =>
+						let 
+							val (name, ret, params_types, params) = find_dec(dl, name)
+							val args_types = check_args(el,params_types)
+						in
+							if params_types = args_types
+							then ret
+							else raise TypeMismatch "Paramaters passed to lambda do not agree"
+						end
+					| _ => raise TypeMismatch "Variable is not a lambda"
+			end
+		|typecheck_exp(G, Lambda(var_list, body), dl, t) = 
+			let 
+				val n = List.length var_list
+				val tipo = getvalinterface(t)
+				fun add_to_context(lt, vl) =
 					case vl of
 						 [] => []
 						| Var(v) :: vl' => 
@@ -46,28 +64,27 @@ fun typecheck_exp(G, dl, Cons k) = Integer Int
 								val t = List.hd lt
 								val lt' = List.drop(lt,1)
 							in
-								(v, build_types(t)) :: add_to_contest(lt', vl')
+								(v, t) :: add_to_context(lt', vl')
 							end
-				val G = add_to_contest(tlist, vlist) @ G
-				val body_type = getval(typecheck_exp(G, dl, body))
-				val lambda_type = find_dec(dl, List.length vl, body_type)
+				val (name, ret, params_types, params) = find_dec(dl, tipo)
+				val G = add_to_context(params_types, params) @ G
+				val body_type = typecheck_exp(G, body, dl, t)
 			in
-				lambda_type
+				if body_type = ret andalso n = List.length params
+				then 
+					ClassInterfaceType(N(name))
+				else raise TypeMismatch "Lambda does not match the interface declaration"
 			end
-		|typecheck_exp(G, dl, Apply(Var(v), el)) = 
-			let
-				val var_t = find(v, G)
-			in
-				case var_t of 
-					InterfaceType(name, ret_t, params_t, vlist) => build_types(ret_t)
-			end
+
+
+
 
 fun type_check(Prog(dl, t, Var(v), e1, e2)) = 
 	let
 		val G = []
-		val e1_type = typecheck_exp(G, dl, e1)
+		val e1_type = typecheck_exp(G, e1, dl, t)
 		val G = (v, e1_type) :: G
-		(*val e2_type = typecheck_exp(G, dl, e2)*)
+		val e2_type = typecheck_exp(G, e2, dl, t)
 	in 
-		e1_type
+		e2_type
 	end

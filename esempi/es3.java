@@ -3,12 +3,12 @@ interface I {
 }
 
 interface J {
-	int m(I x, I y, boolean z);
+	int m(I x, int y, int z);
 }
 
 class P {
 	public static void main(String[] args){
-		int w = 2;
-		System.out.println(false);
+		J w = (x,y,z) -> x.m(y+z);
+		System.out.println(w.m((x) -> x+x, 2, 3+4));
 	}
 }

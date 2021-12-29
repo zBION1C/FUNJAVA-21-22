@@ -3,7 +3,7 @@ interface I {
 }
 
 interface J {
-	int m(I x, I y, boolean z);
+	int m(I x, I y, int z);
 }
 
 class P {
