@@ -76,15 +76,13 @@ fun typecheck_exp(G, Cons k, dl, t) = Int
 				else raise TypeMismatch "Lambda does not match the interface declaration"
 			end
 
-
-
-
 fun type_check(Prog(dl, t, Var(v), e1, e2)) = 
 	let
 		val G = []
 		val e1_type = typecheck_exp(G, e1, dl, t)
 		val G = (v, e1_type) :: G
 		val e2_type = typecheck_exp(G, e2, dl, t)
-	in 
-		e2_type
+	in
+		if t = e1_type then e2_type
+		else raise TypeMismatch "Assignment types do not agree"
 	end
