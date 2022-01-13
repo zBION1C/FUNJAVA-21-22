@@ -1,10 +1,12 @@
-datatype Values = Integer of int
-				| Boolean of bool
-				| Closure of char list * Expression * (char * Values) list
+use "interpreter/Values.sml";
 
 exception UnboundVariable of char
 exception VariableNotLambda of string
 fun find (var, l : (char * 'a) list) =
+	(*
+	input: un carattere e un ambiente
+	output: trova la prima coppia (var, val) e ritorna val 
+	*)
   	case l of 
   		 [] => raise UnboundVariable var
      	| t :: l' => 
@@ -27,6 +29,7 @@ fun getvalclos c =
 		(Closure c) => c
 		| _ => raise VariableNotLambda "A variable in the program is not a function"
 
+(*Funzione di valutazione delle espressioni*)
 fun eval_exp(env, Cons(k)) = Integer k
 	| eval_exp(env, BoolCons(k)) = getbool(k)
 	| eval_exp(env, VarExp(Var(v))) = find(v, env)
@@ -43,9 +46,13 @@ fun eval_exp(env, Cons(k)) = Integer k
 			val vl = #1 c 							(*lista delle parametri*)
 			val body = #2 c 						(*corpo della lambda*)
 			val clos_env = #3 c 					(*Ambiente in cui valutare il corpo*)
-			fun f e = eval_exp(env, e)
-			val interpreted_args = List.map f args
+			fun eval_args e = eval_exp(env, e)		(*Funzione wrapper a eval_exp puo essere mappata ad una lista di espressioni*)
+			val interpreted_args = List.map eval_args args
 			fun loop (l : char list ,el) =
+				(*
+				input: 2 liste l e el.
+				output: array di coppie (l[i], el[i]) per ogni i.
+				*)
 				case l of
 					  [] => []
 					| (x :: l') =>
@@ -61,10 +68,8 @@ fun eval_exp(env, Cons(k)) = Integer k
 		end
 	| eval_exp(env, Lambda(vl, e)) = 
 		let 
-			fun g l = 
-				case l of
-					(Var v) => v
-			val params = List.map g vl
+			fun take_char l = case l of (Var v) => v (*input: un oggetto di tipo Variable. output: il carattere associato alla variabile*)
+			val params = List.map take_char vl
 		in
 			Closure((params, e, env))
 		end
