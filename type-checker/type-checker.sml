@@ -11,7 +11,8 @@ fun find (var, l : (char * 'a) list) =
 fun getvalinterface t =
 	case t of
 		ClassInterfaceType(N(n)) => n
-		| _ => raise TypeMismatch "sus"
+		| Int => #"t"
+		| _ => raise TypeMismatch "Type declared do not match"
 
 fun find_dec(l, tipo) = 
 	(*
@@ -80,8 +81,8 @@ fun typecheck_exp(G, Cons k, dl, t) = Int
 								(v, t) :: add_to_context(lt', vl')
 							end
 				val (name, ret, params_types, params) = find_dec(dl, tipo)
-				val G = add_to_context(params_types, params) @ G  				(*Il corpo della lambda va tipato nel contesto G, aumentandolo associando a tutte le variabili di input della lambda, il tipo dichiarato nell'interfaccia corrsipondente*)
-				val body_type = typecheck_exp(G, body, dl, t)
+				val G = add_to_context(params_types, var_list) @ G				(*Il corpo della lambda va tipato nel contesto G, aumentandolo associando a tutte le variabili di input della lambda, il tipo dichiarato nell'interfaccia corrsipondente*)
+				val body_type = typecheck_exp(G, body, dl, t)	
 			in
 				if body_type = ret andalso n = List.length params  				(*se il tipo del corpo trovato corrisponde al tipo di ritorno dichiarato e il numero di argomenti passati corrisponde al numero di argomento dichiarati*)
 				then 
@@ -97,6 +98,6 @@ fun type_check(Prog(dl, t, Var(v), e1, e2)) =
 		val G = (v, e1_type) :: G
 		val e2_type = typecheck_exp(G, e2, dl, t)
 	in 
-		if t = e1_type then e2_type
+		if t = e1_type then e1_type
 		else raise TypeMismatch "Assignment types do not agree"
 	end

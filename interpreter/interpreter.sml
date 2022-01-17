@@ -43,15 +43,16 @@ fun eval_exp(env, Cons(k)) = Integer k
 	| eval_exp(env, Apply(Var(v), args)) = 
 		let
 			val c = getvalclos(find(v, env)) 		(*Prende il valore della chiusura dall'ambiente*)
-			val vl = #1 c 							(*lista delle parametri*)
+			val vl = #1 c 							(*lista dei parametri*)
 			val body = #2 c 						(*corpo della lambda*)
 			val clos_env = #3 c 					(*Ambiente in cui valutare il corpo*)
-			fun eval_args e = eval_exp(env, e)		(*Funzione wrapper a eval_exp puo essere mappata ad una lista di espressioni*)
+			fun eval_args e = eval_exp(env, e)		(*Funzione wrapper a eval_exp, puo essere mappata ad una lista di espressioni*)
 			val interpreted_args = List.map eval_args args
 			fun loop (l : char list ,el) =
 				(*
 				input: 2 liste l e el.
 				output: array di coppie (l[i], el[i]) per ogni i.
+				Serve per associare ad ogni parametro formale della funzione, il valore degli arogmenti
 				*)
 				case l of
 					  [] => []

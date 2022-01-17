@@ -1,9 +1,9 @@
 datatype token = 
 	TokenInterface of char | TokenIntType | TokenBoolType | TokenVar of char | TokenInterfaceType of char | TokenIntMethod | TokenBoolMethod
-	| TokenCons of string | TokenBoolCons of string | TokenPlus | TokenLambda | TokenApply | TokenComma | TokenEnd | LPAREN | RPAREN
+	| TokenCons of string | TokenBoolCons of string | TokenPlus | TokenLambda | TokenApply | TokenComma | TokenEnd | LPAREN | RPAREN | TokenInterfaceMethod
 
 exception InvalidToken of string
-fun foo s =
+fun tokenize_alfanumeric s =
 	let 
 		val c = (List.hd(String.explode s))
 	in
@@ -17,6 +17,7 @@ fun tokenize nil = nil
 	| tokenize ("interface" :: name :: r) = TokenInterface(List.hd(String.explode name)) :: tokenize r 
 	| tokenize ("int" :: "m" :: r) = TokenIntMethod :: tokenize r
 	| tokenize ("boolean" :: "m" :: r) = TokenBoolMethod :: tokenize r
+	| tokenize (i :: "m" :: r) = TokenBoolMethod :: tokenize r
 	| tokenize ("int" :: v :: r) = TokenIntType :: TokenVar(List.hd(String.explode v)):: tokenize r
 	| tokenize ("boolean" :: v :: r) = TokenBoolType :: TokenVar(List.hd(String.explode v)) :: tokenize r
 	| tokenize ("false" :: r) = TokenBoolCons "false" :: tokenize r
@@ -30,7 +31,7 @@ fun tokenize nil = nil
 	| tokenize (";" :: r) = TokenEnd :: tokenize r
 	| tokenize ("(" :: r) = LPAREN :: tokenize r
 	| tokenize (")" :: r) = RPAREN :: tokenize r
-	| tokenize (s :: r) = foo s :: tokenize r
+	| tokenize (s :: r) = tokenize_alfanumeric s :: tokenize r
 
 fun delimitator c = c = #" " 
 		orelse 	c = #"{" 

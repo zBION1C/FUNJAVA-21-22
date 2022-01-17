@@ -9,6 +9,6 @@ interface J {
 class P {
 	public static void main(String[] args) {
 	J w = (x, y, z) -> x.m(y.m(z));
-	System.out.println(w.m((u)-> u+1, (v) -> 41, 8));
+	System.out.println(w.m((u)-> u, (v) -> 41, 8));
 	}
 }
