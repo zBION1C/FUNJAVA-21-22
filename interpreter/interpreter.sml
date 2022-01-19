@@ -1,4 +1,4 @@
-use "interpreter/Values.sml";
+use "interpreter/values.sml";
 
 exception UnboundVariable of char
 exception VariableNotLambda of string
