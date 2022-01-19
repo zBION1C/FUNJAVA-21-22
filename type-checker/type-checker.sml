@@ -98,6 +98,6 @@ fun type_check(Prog(dl, t, Var(v), e1, e2)) =
 		val G = (v, e1_type) :: G
 		val e2_type = typecheck_exp(G, e2, dl, t)
 	in 
-		if t = e1_type then e1_type
+		if t = e1_type then e2_type
 		else raise TypeMismatch "Assignment types do not agree"
 	end

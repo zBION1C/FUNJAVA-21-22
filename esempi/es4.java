@@ -6,10 +6,6 @@ interface J {
 	int m(I x, int y);
 }
 
-interface Z {
-	int m(int x, int y);
-}
-
 class P {
 	public static void main(String[] args){
 		J w = (x,y) -> x.m(y);

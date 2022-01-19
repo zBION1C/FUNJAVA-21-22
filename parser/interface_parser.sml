@@ -2,6 +2,7 @@ fun parse_method ts name x y z=
 	case ts of
 		  (TokenIntMethod :: ts') => let val x = Int in parse_method ts' name x y z end
 		| (TokenBoolMethod :: ts') => let val x = Boolean in parse_method ts' name x y z end
+		| (TokenInterfaceMethod i :: ts') => let val x = ClassInterfaceType(N i) in parse_method ts' name x y z end
 		| (TokenIntType :: TokenVar v :: ts') => let val y = Int :: y; val z = Var v :: z in parse_method ts' name x y z end
 		| (TokenBoolType :: TokenVar v :: ts') => let val y = Boolean :: y; val z = Var v :: z in parse_method ts' name x y z end
 		| (TokenInterfaceType i :: TokenVar v :: ts') => let val y = ClassInterfaceType(N i) :: y; val z = Var v :: z in parse_method ts' name x y z end

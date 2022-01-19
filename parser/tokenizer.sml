@@ -1,6 +1,6 @@
 datatype token = 
 	TokenInterface of char | TokenIntType | TokenBoolType | TokenVar of char | TokenInterfaceType of char | TokenIntMethod | TokenBoolMethod
-	| TokenCons of string | TokenBoolCons of string | TokenPlus | TokenLambda | TokenApply | TokenComma | TokenEnd | LPAREN | RPAREN | TokenInterfaceMethod
+	| TokenCons of string | TokenBoolCons of string | TokenPlus | TokenLambda | TokenApply | TokenComma | TokenEnd | LPAREN | RPAREN | TokenInterfaceMethod of char
 
 exception InvalidToken of string
 fun tokenize_alfanumeric s =
@@ -17,7 +17,7 @@ fun tokenize nil = nil
 	| tokenize ("interface" :: name :: r) = TokenInterface(List.hd(String.explode name)) :: tokenize r 
 	| tokenize ("int" :: "m" :: r) = TokenIntMethod :: tokenize r
 	| tokenize ("boolean" :: "m" :: r) = TokenBoolMethod :: tokenize r
-	| tokenize (i :: "m" :: r) = TokenBoolMethod :: tokenize r
+	| tokenize (i :: "m" :: r) = TokenInterfaceMethod (List.hd(String.explode i)) :: tokenize r
 	| tokenize ("int" :: v :: r) = TokenIntType :: TokenVar(List.hd(String.explode v)):: tokenize r
 	| tokenize ("boolean" :: v :: r) = TokenBoolType :: TokenVar(List.hd(String.explode v)) :: tokenize r
 	| tokenize ("false" :: r) = TokenBoolCons "false" :: tokenize r
