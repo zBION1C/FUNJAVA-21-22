@@ -1,8 +1,8 @@
 exception TypeMismatch of string
-exception UnboundVariable of char
+exception UnboundVariable of string
 fun find (var, l : (char * 'a) list) =
   	case l of 
-  		 [] => raise UnboundVariable var
+  		 [] => raise UnboundVariable(Char.toString var)
      	| t :: l' => 
      		if (#1 t) = var
      		then (#2 t)
@@ -11,14 +11,10 @@ fun find (var, l : (char * 'a) list) =
 fun getvalinterface t =
 	case t of
 		ClassInterfaceType(N(n)) => n
-		| Int => #"t"
-		| _ => raise TypeMismatch "Type declared do not match"
+		| _ => raise TypeMismatch "Type declared is not an interface"
 
+(* Funzione che cerca una determinata interfaccia nella lista di dichiarazioni di interfacce del programma usando come chiave di ricerca il nome dato all'interfaccia *)
 fun find_dec(l, tipo) = 
-	(*
-	cerca la dichiarazione di interfaccia corrispondente nella lista di dichiarazione di interfacce del programma
-	usando come chiave il nome di interfaccia
-	*)
 	case l of
 		 [] => raise TypeMismatch "Functional interface does not exists"
 		|Interface(N(name), ret, tlist, vlist) :: l' =>
@@ -33,12 +29,12 @@ fun typecheck_exp(G, Cons k, dl, t) = Int
 		|typecheck_exp(G, Plus(e1,e2), dl, t) = Int
 		|typecheck_exp(G, Apply(Var(v), el), dl, t) = 
 			let
+				(* Funzione che tipa tutti gli argomenti passati all'Apply
+					Input: una lista di espressioni l e una lista di tipi lt
+					Output: la lista dei tipi delle espressioni in l dove ogni espressione l[i] e' tipata nel contesto G passando il tipo lt[i]
+					Tale funzione e' utile per andare a tipare le Lambda nelle Apply delle quali bisogna conoscere l'interfaccia corrispondente
+				*)
 				fun check_args(l,lt) =
-					(*
-					input: una lista di espressioni, e una lista di tipi
-					output: una lista dei tipi delle espressioni in l. ogni espressioni l[i] e' tipata nel contesto G e passando il tipo lt[i]
-					Funzione utile per andare a tipare le lambda nelle apply, di cui bisogna conoscere l'interfaccia corrispondente
-					*)
 					case l of
 						[] => []
 						| e :: l' => 
@@ -54,10 +50,10 @@ fun typecheck_exp(G, Cons k, dl, t) = Int
 					ClassInterfaceType(N(name)) =>
 						let 
 							val (name, ret, params_types, params) = find_dec(dl, name)
-							val args_types = check_args(el,params_types)				(*args_types corrisponde all'array dei tipi degli argomenti passati all'apply*)
+							val args_types = check_args(el, params_types)				(* args_types corrisponde all'array dei tipi degli argomenti passati all'Apply *)
 						in
-							if params_types = args_types 	(*Se i tipi passati corrispondono a quelli dichiarati*)
-							then ret   						(*il tipo dell'apply e il tipo di ritorno dichiarato nell'interfaccia*)
+							if params_types = args_types 	(* Se i tipi passati corrispondono a quelli dichiarati *)
+							then ret   						(* Ritorna il tipo di ritorno dichiarato nell'interfaccia *)
 							else raise TypeMismatch "Paramaters passed to lambda do not agree"
 						end
 					| _ => raise TypeMismatch "Variable is not a lambda"
@@ -66,11 +62,11 @@ fun typecheck_exp(G, Cons k, dl, t) = Int
 			let 
 				val n = List.length var_list
 				val tipo = getvalinterface(t)
+				(* Funzione utilizzata per aumentare il contesto G
+					Input: una lista di tipi lt e una lista di variabili vl
+					Output: una lista di coppie (vl[i], lt[i]) 
+				*)
 				fun add_to_context(lt, vl) =
-					(*
-					input: 2 liste lt e vl.
-					output: array di coppie (lt[i], vl[i]) per ogni i.
-					*)
 					case vl of
 						 [] => []
 						| Var(v) :: vl' => 
@@ -81,16 +77,16 @@ fun typecheck_exp(G, Cons k, dl, t) = Int
 								(v, t) :: add_to_context(lt', vl')
 							end
 				val (name, ret, params_types, params) = find_dec(dl, tipo)
-				val G = add_to_context(params_types, var_list) @ G				(*Il corpo della lambda va tipato nel contesto G, aumentandolo associando a tutte le variabili di input della lambda, il tipo dichiarato nell'interfaccia corrsipondente*)
+				val G = add_to_context(params_types, var_list) @ G				(* Il corpo della Lambda va tipato nel contesto G che viene aumentato associando a tutte le variabili di input della Lambda il corrispettivo tipo dichiarato nell'interfaccia *)
 				val body_type = typecheck_exp(G, body, dl, t)	
 			in
-				if body_type = ret andalso n = List.length params  				(*se il tipo del corpo trovato corrisponde al tipo di ritorno dichiarato e il numero di argomenti passati corrisponde al numero di argomento dichiarati*)
+				if body_type = ret andalso n = List.length params  				(* Se il tipo del corpo trovato corrisponde al tipo di ritorno dichiarato e il numero di argomenti passati corrisponde al numero di argomento dichiarati *)
 				then 
-					ClassInterfaceType(N(name))
+					ClassInterfaceType(N(name))									(* Ritorna il tipo dell'interfaccia dichiarata *)
 				else raise TypeMismatch "Lambda does not match the interface declaration"
 			end
 
-
+(* Funzione principale del type-checking *)
 fun type_check(Prog(dl, t, Var(v), e1, e2)) = 
 	let
 		val G = []

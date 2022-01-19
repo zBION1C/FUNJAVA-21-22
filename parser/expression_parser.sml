@@ -1,5 +1,6 @@
 fun parse_lambda ts = 
 	let 
+		(* Funzione che estrae i parametri della Lambda *)
 		fun parse_params(ts, arr) = 
 			case ts of
 				(LPAREN :: ts') => parse_params(ts', [])		
@@ -25,12 +26,14 @@ fun parse_lambda ts =
 
 and parse_apply ts = 
 	let 
+		(* Funzione che estrae il nome della variabile della funzione applicata *)
 		fun take_var ts =
 			case ts of
 				(TokenVar x :: TokenApply :: LPAREN :: ts') => (Var(x), ts')
 		val (var, ts') = take_var ts
 
-		fun parse_args(ts,arr) = 
+		(* Funzione che fa il parsing degli argomenti passati all'Apply*)
+		fun parse_args(ts, arr) = 
 			let
 				val (e, ts') = parse_expression ts
 				val arr = e :: arr
@@ -46,6 +49,7 @@ and parse_apply ts =
 		(Apply(var, List.rev el), ts'')
 	end
 
+(* Funzione che riconosce il tipo di espressione di cui fare il parsing *)
 and parse_atomic ts = 
 	case ts of
 		(TokenCons k :: ts') => (Cons(valOf (Int.fromString k)), ts')
@@ -68,6 +72,7 @@ and parse_atomic ts =
 				(e, ts'')
 			end
 
+(* Funzione che parsa una singola espressione *)
 and parse_expression ts =  
 	let
 		val (e, ts') = parse_atomic ts

@@ -1,6 +1,6 @@
 use "interpreter/values.sml";
 
-exception UnboundVariable of char
+exception UnboundVariable of string
 exception VariableNotLambda of string
 fun find (var, l : (char * 'a) list) =
 	(*
@@ -8,7 +8,7 @@ fun find (var, l : (char * 'a) list) =
 	output: trova la prima coppia (var, val) e ritorna val 
 	*)
   	case l of 
-  		 [] => raise UnboundVariable var
+  		 [] => raise UnboundVariable(Char.toString var)
      	| t :: l' => 
      		if (#1 t) = var
      		then (#2 t)

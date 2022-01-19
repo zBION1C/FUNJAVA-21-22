@@ -3,6 +3,7 @@ use "parser/interface_parser.sml";
 use "parser/expression_parser.sml";
 
 exception SyntaxError of string
+(* Funzione che parsa le interfacce e le ritorna in una lista *)
 fun parse_interfaces ts my_list = 
 	case ts of
 		(TokenInterface c :: ts') => 
@@ -14,6 +15,7 @@ fun parse_interfaces ts my_list =
 			end
 		| _ => (List.rev my_list, ts)
 
+(* Funzione che parsa la dichiarazione nel main *)
 fun parse_main_declaration ts = 
 	case ts of
 		(TokenIntType :: TokenVar v :: ts') => (Int, Var v, ts')
@@ -21,6 +23,7 @@ fun parse_main_declaration ts =
 		| (TokenInterfaceType c :: TokenVar v :: ts') => (ClassInterfaceType(N c), Var v, ts')
 		| _ => raise SyntaxError "Syntax Error, check the program for errors."
 
+(* Funzione principale del parsing *)
 fun parse ts =
 	let
 		val (my_list, ts') = parse_interfaces ts []

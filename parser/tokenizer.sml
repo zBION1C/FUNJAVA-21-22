@@ -3,6 +3,7 @@ datatype token =
 	| TokenCons of string | TokenBoolCons of string | TokenPlus | TokenLambda | TokenApply | TokenComma | TokenEnd | LPAREN | RPAREN | TokenInterfaceMethod of char
 
 exception InvalidToken of string
+(* Funzione che riconosce e tokenizza i nomi delle variabili, di interfaccia e i numeri interi *)
 fun tokenize_alfanumeric s =
 	let 
 		val c = (List.hd(String.explode s))
@@ -13,6 +14,7 @@ fun tokenize_alfanumeric s =
 		else raise InvalidToken s
 	end;
 
+(* Funzione che tokenizza la lista di stringhe che rappresenta il programma FUNJAVA *)
 fun tokenize nil = nil 
 	| tokenize ("interface" :: name :: r) = TokenInterface(List.hd(String.explode name)) :: tokenize r 
 	| tokenize ("int" :: "m" :: r) = TokenIntMethod :: tokenize r
@@ -33,6 +35,7 @@ fun tokenize nil = nil
 	| tokenize (")" :: r) = RPAREN :: tokenize r
 	| tokenize (s :: r) = tokenize_alfanumeric s :: tokenize r
 
+(* Funzione usata nella String.tokens per spezzare la stringa in una lista escludendo i delimitatori *)
 fun delimitator c = c = #" " 
 		orelse 	c = #"{" 
 		orelse  c = #"="
@@ -40,6 +43,7 @@ fun delimitator c = c = #" "
 		orelse  c = #"\t"
 		orelse  c = #"\n";
 
+(* Funzione usata nella String.replace per facilitare il riconoscimento di simboli chiave del programma *)
 fun replace c = 
 	if c = #"." then " ." 
 	else if c = #"+" then " + "

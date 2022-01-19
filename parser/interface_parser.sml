@@ -1,3 +1,4 @@
+(* Funzione che parsa la dichiarazione di un interfaccia: nome, tipo di ritorno, parametri e rispettivi tipi *)
 fun parse_method ts name x y z= 
 	case ts of
 		  (TokenIntMethod :: ts') => let val x = Int in parse_method ts' name x y z end
@@ -14,10 +15,10 @@ fun parse_method ts name x y z=
 
 fun parse_interface ts= 
 	let 
-		val name = #"c"
-		val x = Int
-		val y = []
-		val z = []
+		val name = #"c" 	(* Nome dell'interfaccia *)
+		val x = Int 		(* Tipo di ritorno del metodo *)
+		val y = [] 			(* Lista dei tipi dei parametri *)
+		val z = [] 			(* Lista dei parametri *)
 		val (name,x,y,z,ts') = parse_method ts name Int [] []
 	in
 		(Interface(N name,x,y,z), ts')
