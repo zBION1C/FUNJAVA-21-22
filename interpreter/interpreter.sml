@@ -2,11 +2,8 @@ use "interpreter/values.sml";
 
 exception UnboundVariable of string
 exception VariableNotLambda of string
+
 fun find (var, l : (char * 'a) list) =
-	(*
-	input: un carattere e un ambiente
-	output: trova la prima coppia (var, val) e ritorna val 
-	*)
   	case l of 
   		 [] => raise UnboundVariable(Char.toString var)
      	| t :: l' => 
@@ -46,30 +43,38 @@ fun eval_exp(env, Cons(k)) = Integer k
 			val vl = #1 c 							(*lista dei parametri*)
 			val body = #2 c 						(*corpo della lambda*)
 			val clos_env = #3 c 					(*Ambiente in cui valutare il corpo*)
+			
 			fun eval_args e = eval_exp(env, e)		(*Funzione wrapper a eval_exp, puo essere mappata ad una lista di espressioni*)
+			
 			val interpreted_args = List.map eval_args args
-			fun loop (l : char list ,el) =
-				(*
-				input: 2 liste l e el.
-				output: array di coppie (l[i], el[i]) per ogni i.
+
+			(* Funzione utilizzata per aumentare l'ambiente env
+				input: una lista di variabili l e una lista di valori el
+				output: una lista di coppie (l[i], el[i]) per ogni i.
 				Serve per associare ad ogni parametro formale della funzione, il valore degli arogmenti
-				*)
-				case l of
+			*)
+			fun add_to_env (vl : char list, el) =
+				case vl of
 					  [] => []
-					| (x :: l') =>
+					| (x :: vl') =>
 						let
 							val e1 = List.hd el
 							val el = List.drop (el,1)
 						in 
-							(x, e1) :: loop(l',el)
+							(x, e1) :: add_to_env(vl',el)
 						end
-			val env = clos_env @ loop(vl, interpreted_args)
+			val env = clos_env @ add_to_env(vl, interpreted_args)
 		in
 			eval_exp(env, body)
 		end
 	| eval_exp(env, Lambda(vl, e)) = 
 		let 
-			fun take_char l = case l of (Var v) => v (*input: un oggetto di tipo Variable. output: il carattere associato alla variabile*)
+			(* Funzione per estrarre le variabili di input di una lambda
+				input: un oggetto di tipo Variable. 
+				output: il carattere associato alla variabile
+			*)
+			fun take_char l = case l of (Var v) => v
+			
 			val params = List.map take_char vl
 		in
 			Closure((params, e, env))
