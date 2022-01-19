@@ -2,7 +2,7 @@ exception TypeMismatch of string
 exception UnboundVariable of string
 fun find (var, l : (char * 'a) list) =
   	case l of 
-  		 [] => raise UnboundVariable(Char.toString var)
+  		 [] => raise UnboundVariable (Char.toString var ^ " never declared in main function")
      	| t :: l' => 
      		if (#1 t) = var
      		then (#2 t)
